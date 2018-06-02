@@ -2,3 +2,4 @@
 brainfuck_bootloader.img
 brainfuck_bootloader.lst
 disassembly.txt
+gdb_init_file
