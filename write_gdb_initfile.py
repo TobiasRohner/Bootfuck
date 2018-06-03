@@ -22,6 +22,10 @@ set $AllocateWorkspace = %(AllocateWorkspace)s
 set $RunCode = %(RunCode)s
 set $ni = %(RunCode.next_instruction)s
 
+set architecture i8086
+set disassembly-flavor intel
+
+set disassemble-next-line on
 display/1hx $pcb
 display/1hx $dpb
 
