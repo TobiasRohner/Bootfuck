@@ -6,12 +6,12 @@ all: .assembly disassembly.txt
 
 .PHONY: clean
 clean:
-	rm -f brainfuck_bootloader.img disassembly.txt .assembly brainfuck_bootloader.lst gdb_init_file
+	rm -f brainfuck_bootloader.img disassembly.txt .assembly brainfuck_bootloader.map gdb_init_file
 
 
 
 .assembly: brainfuck_bootloader.asm
-	nasm -f bin -o brainfuck_bootloader.img -l brainfuck_bootloader.lst $<
+	nasm -f bin -o brainfuck_bootloader.img $<
 	touch .assembly
 
 
@@ -19,15 +19,15 @@ clean:
 brainfuck_bootloader.img: .assembly
 
 
-.PHONY: brainfuck_bootloader.lst
-brainfuck_bootloader.lst: .assembly
+.PHONY: brainfuck_bootloader.map
+brainfuck_bootloader.map: .assembly
 
 
 disassembly.txt: brainfuck_bootloader.img
 	objdump -D -b binary -m i8086 -M intel --adjust-vma=0x7c00 $< > $@
 
 
-gdb_init_file: write_gdb_initfile.py brainfuck_bootloader.lst
+gdb_init_file: write_gdb_initfile.py brainfuck_bootloader.map
 	python3 $^ gdb_init_file
 
 

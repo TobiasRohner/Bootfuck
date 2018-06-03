@@ -1,3 +1,4 @@
+[map all brainfuck_bootloader.map]
 
 	org 7C00h		; Offset the program to address 7C00
 

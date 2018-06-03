@@ -1,5 +1,5 @@
 .assembly
 brainfuck_bootloader.img
-brainfuck_bootloader.lst
+brainfuck_bootloader.map
 disassembly.txt
 gdb_init_file

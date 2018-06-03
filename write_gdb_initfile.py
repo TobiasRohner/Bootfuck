@@ -3,24 +3,27 @@ import sys
 
 USAGESTR = 'USAGE: python3 ' + sys.argv[0] + ' <listings file> <gdb init file>'
 
-labels = {'GetInput'          : None,
-          'AllocateWorkspace' : None,
-          'RunCode'           : None,
-          'ProgramCounter'    : None,
-          'DataPointer'       : None,
-          'SectorEnd'         : None,
-          'next_instruction'  : None}
+labels = {'GetInput'                  : None,
+          'AllocateWorkspace'         : None,
+          'RunCode'                   : None,
+          'ProgramCounter'            : None,
+          'DataPointer'               : None,
+          'SectorEnd'                 : None,
+          'RunCode.next_instruction'  : None}
 
 INITFILE = """
 target remote:1234
 
-set $pcb = {ProgramCounter}
-set $dpb = {DataPointer}
-set $code = {SectorEnd}
-set $GetInput = {GetInput}
-set $AllocateWorkspace = {AllocateWorkspace}
-set $RunCode = {RunCode}
-set $ni = {next_instruction}
+set $pcb = %(ProgramCounter)s
+set $dpb = %(DataPointer)s
+set $code = %(SectorEnd)s
+set $GetInput = %(GetInput)s
+set $AllocateWorkspace = %(AllocateWorkspace)s
+set $RunCode = %(RunCode)s
+set $ni = %(RunCode.next_instruction)s
+
+display/1hx $pcb
+display/1hx $dpb
 
 break *$GetInput
 continue
@@ -34,10 +37,10 @@ if __name__ == '__main__':
     with open(sys.argv[1], 'r') as f:
         codelines = f.readlines()
     
-    for index, line in enumerate(codelines):
+    for line in codelines:
         for label in labels:
-            if label+':' in line:
-                labels[label] = int(codelines[index+1].split()[1], 16) + 0x7c00
+            if len(line.split()) > 0 and line.split()[-1] == label:
+                labels[label] = int(line.split()[0], 16)
 
     with open(sys.argv[2], 'w') as f:
-        f.write(INITFILE.format(**labels))
+        f.write(INITFILE % labels)
