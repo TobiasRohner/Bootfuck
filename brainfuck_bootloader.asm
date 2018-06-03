@@ -129,11 +129,21 @@ RunCode:			; Set up for writing on the screen
 	mov al, [eax]		; Move the value of the current cell to al
 	test al, 0FFh		; Test whether al is zero
 	jnz .next_instruction	; If the byte was not zero, continue with the program flow
+	mov cx, 1		; The amount of opening brackets seen is stored in cx
 .jump_forward_loop:
 	inc word [ProgramCounter]	; Move the program counter one position to the right
 	movzx eax, word [ProgramCounter]; Get the address the program counter is pointing to
+	cmp byte [eax], '['	; Check if another bracket is opened
+	jne .jump_forward_loop_no_open	; Just continue normally if the character is no opening bracket
+	inc cx			; Increment the number of opening brackets seen
+.jump_forward_loop_no_open:
 	cmp byte [eax], ']'	; Check if the current command is ']'
-	jne .jump_forward_loop	; If the current command is not ']', continue searching
+	jne .jump_forward_loop_no_close	; Just continue normally if the character is no closing bracket
+	dec cx
+.jump_forward_loop_no_close:
+	test cx, 0FFh		; Test whether cx is zero
+	jnz .jump_forward_loop	; Continue looping until the matching closing bracket
+	mov cx, 1		; Reset cx
 	jmp .next_instruction	; Execute the next instruction
 
 .jump_backward:		; ]
@@ -141,11 +151,21 @@ RunCode:			; Set up for writing on the screen
 	mov al, [eax]		; Move the value of the current cell to al
 	test al, 0FFh		; Test whether al is zero
 	jz .next_instruction	; If the byte was not zero, continue with the program flow
+	mov cx, 1		; The amount of closing brackets seen is stored in cx
 .jump_backward_loop:
 	dec word [ProgramCounter]	; Move the program counter one position to the left
 	movzx eax, word [ProgramCounter]; Get the address the program counter is pointing to
-	cmp byte [eax], '['	; Check if the current command is '['
-	jne .jump_backward_loop	; If the current command is not '[', continue searching
+	cmp byte [eax], ']'	; Check if another bracket is closed
+	jne .jump_backward_loop_no_close    ; Just continue normally if the character is no closing bracket
+	inc cx			; Increment the number of closing brackets seen
+.jump_backward_loop_no_close:
+	cmp byte [eax], '['	; Check if another bracket is opened
+	jne .jump_backward_loop_no_open	; Just continue normally if the character is no opening bracket
+	dec cx			; Decrement the number of closing brackets seen
+.jump_backward_loop_no_open:
+	test cx, 0FFh		; Test whether cx is zero
+	jnz .jump_backward_loop	; Continue until the matching opening bracket is found
+	mov cx, 1		; Reset cx
 	jmp .next_instruction	; Execute the next instruction
 	
 
@@ -184,4 +204,3 @@ DataPointer:
 	dw 0AA55h   ; Boot sector signature
 
 SectorEnd:
-	nop		    ; This command is just here for the write_gdb_initfile.py script
